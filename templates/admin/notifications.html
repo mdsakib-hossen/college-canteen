@@ -1,0 +1,106 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}নোটিফিকেশন{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>🔔 নোটিফিকেশন</h1>
+</div>
+
+<!-- SEND NOTIFICATION FORM -->
+<div class="form-page-card" style="max-width:100%">
+  <h2>📤 নোটিফিকেশন পাঠান</h2>
+  <form method="POST" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>প্রাপক</label>
+        <select name="target" id="targetSelect" onchange="toggleRoll(this.value)">
+          <option value="all">সকল শিক্ষার্থী</option>
+          <option value="specific">নির্দিষ্ট শিক্ষার্থী</option>
+        </select>
+      </div>
+      <div class="form-group" id="rollGroup" style="display:none">
+        <label>শিক্ষার্থীর রোল নম্বর</label>
+        <input type="text" id="rollInput" name="target_roll" placeholder="যেমন: CST-2021-001"
+               style="text-transform:uppercase" />
+        <small class="form-hint">নির্দিষ্ট শিক্ষার্থীকে পাঠাতে রোল লিখুন</small>
+      </div>
+      <div class="form-group">
+        <label>ধরন</label>
+        <select name="notif_type">
+          <option value="info">ℹ️ তথ্য</option>
+          <option value="success">✅ সাফল্য</option>
+          <option value="warning">⚠️ সতর্কতা</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>শিরোনাম *</label>
+      <input type="text" name="title" placeholder="নোটিফিকেশনের শিরোনাম" required maxlength="200" />
+    </div>
+    <div class="form-group">
+      <label>বার্তা *</label>
+      <textarea name="message" rows="3" placeholder="বিস্তারিত বার্তা লিখুন..." required maxlength="500"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">📤 পাঠান</button>
+    </div>
+  </form>
+</div>
+
+<!-- RECEIVED NOTIFICATIONS -->
+<div class="form-page-card" style="max-width:100%; margin-top:8px">
+  <h2>📥 প্রাপ্ত নোটিফিকেশন</h2>
+
+  {% if notifications %}
+  <div class="notif-list">
+    {% for n in notifications %}
+    <div class="notif-card notif-{{ n.notif_type }}">
+      <div class="notif-icon">
+        {% if n.notif_type == 'success' %}✅{% elif n.notif_type == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      </div>
+      <div class="notif-body">
+        <div class="notif-title">{{ n.title }}</div>
+        <div class="notif-msg">{{ n.message }}</div>
+        <div class="notif-time">{{ n.created_at|bdtime_short }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:30px 0">
+    <div class="empty-icon">🔔</div>
+    <p class="text-muted">কোনো নোটিফিকেশন নেই।</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function toggleRoll(val) {
+  const rollGroup = document.getElementById('rollGroup');
+  const rollInput = document.getElementById('rollInput');
+  if (val === 'specific') {
+    rollGroup.style.display = 'flex';
+    rollInput.required = true;
+    // Set target to the roll value on submit
+    document.querySelector('select[name="target"]').addEventListener('change', function(){});
+  } else {
+    rollGroup.style.display = 'none';
+    rollInput.required = false;
+  }
+}
+
+// Override form submit to set target correctly
+document.querySelector('form').addEventListener('submit', function(e) {
+  const sel = document.getElementById('targetSelect');
+  if (sel.value === 'specific') {
+    const roll = document.getElementById('rollInput').value.trim().toUpperCase();
+    if (!roll) { e.preventDefault(); alert('রোল নম্বর দিন।'); return; }
+    sel.value = roll;
+  }
+});
+</script>
+{% endblock %}

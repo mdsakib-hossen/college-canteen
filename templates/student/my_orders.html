@@ -1,0 +1,48 @@
+{% extends 'student/base_student.html' %}
+{% block title %}আমার অর্ডার{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <h1>📋 আমার অর্ডার</h1>
+</div>
+
+{% if orders %}
+<div class="orders-list">
+  {% for order in orders %}
+  <div class="order-list-card status-{{ order.status }}">
+    <div class="order-list-header">
+      <div>
+        <span class="token-badge">{{ order.token_number }}</span>
+        <span class="order-date">{{ order.order_date }}</span>
+      </div>
+      <span class="badge-status {{ order.status }}">
+        {% if order.status == 'pending' %}অপেক্ষায়
+        {% elif order.status == 'confirmed' %}নিশ্চিত
+        {% elif order.status == 'ready' %}প্রস্তুত 🍱
+        {% elif order.status == 'delivered' %}দেওয়া হয়েছে ✓
+        {% elif order.status == 'cancelled' %}বাতিল
+        {% endif %}
+      </span>
+    </div>
+    <div class="order-list-items">
+      {% for oi in order.items %}
+      <span class="item-chip">{{ oi.menu_item.name }} ×{{ oi.quantity }}</span>
+      {% endfor %}
+    </div>
+    <div class="order-list-footer">
+      <span class="order-total">৳ {{ "%.2f"|format(order.total_price) }}</span>
+      <a href="{{ url_for('student.order_detail', order_id=order.id) }}" class="btn btn-outline btn-sm">
+        বিস্তারিত →
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🛒</div>
+  <h2>এখনো কোনো অর্ডার নেই</h2>
+  <a href="{{ url_for('student.order') }}" class="btn btn-primary">প্রথম অর্ডার দিন</a>
+</div>
+{% endif %}
+{% endblock %}

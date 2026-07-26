@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+*.env
+
+# Database (local only)
+instance/
+*.db
+*.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Uploads (user data - not in git)
+static/uploads/profiles/
+static/uploads/food/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

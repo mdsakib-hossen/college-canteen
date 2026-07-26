@@ -1,0 +1,76 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}দৈনিক মেনু{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>📅 দৈনিক মেনু সেট করুন</h1>
+</div>
+
+<div class="form-page-card">
+  <form method="POST" class="auth-form" id="dailyMenuForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <div class="form-group">
+      <label>তারিখ বাছাই করুন</label>
+      <input type="date" name="date" value="{{ selected_date }}" required id="dateInput"
+             onchange="loadDate(this.value)" />
+    </div>
+
+    {% if all_items %}
+    <div class="daily-menu-header">
+      <h3>আইটেম বাছাই করুন</h3>
+      <div class="daily-menu-actions">
+        <button type="button" class="btn btn-sm btn-outline" onclick="selectAll()">✅ সব বাছাই</button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="clearAll()">❌ সব বাদ</button>
+      </div>
+    </div>
+
+    <div class="daily-menu-items">
+      {% for item in all_items %}
+      <label class="daily-item-label {% if item.id in current_daily %}selected{% endif %}">
+        <input type="checkbox" name="items" value="{{ item.id }}"
+               {% if item.id in current_daily %}checked{% endif %}
+               onchange="this.closest('label').classList.toggle('selected', this.checked)" />
+        <span class="daily-item-name">{{ item.name }}</span>
+        <span class="daily-item-price">৳ {{ "%.0f"|format(item.price) }}</span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <div class="daily-menu-tip">
+      💡 <strong>টিপ:</strong> প্রতিদিন এক মেনু থাকলে "সব বাছাই" করে সেভ করুন।
+    </div>
+
+    {% else %}
+    <div class="empty-state" style="padding:30px 0">
+      <div class="empty-icon">🍱</div>
+      <p>প্রথমে <a href="{{ url_for('admin.add_menu_item') }}" class="text-primary">মেনু আইটেম যোগ করুন</a>।</p>
+    </div>
+    {% endif %}
+
+    {% if all_items %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 মেনু সেভ করুন</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+function selectAll() {
+  document.querySelectorAll('.daily-item-label input[type="checkbox"]').forEach(cb => {
+    cb.checked = true;
+    cb.closest('label').classList.add('selected');
+  });
+}
+function clearAll() {
+  document.querySelectorAll('.daily-item-label input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('label').classList.remove('selected');
+  });
+}
+function loadDate(val) {
+  window.location.href = '{{ url_for("admin.daily_menu") }}?date=' + val;
+}
+</script>
+{% endblock %}

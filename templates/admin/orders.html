@@ -1,0 +1,68 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}অর্ডার ম্যানেজমেন্ট{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>📋 অর্ডার ম্যানেজমেন্ট</h1>
+  <div class="page-header-actions">
+    <form method="GET" class="date-filter-form">
+      <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()" class="date-input" />
+    </form>
+    <a href="{{ url_for('admin.print_orders', date=selected_date) }}" target="_blank" class="btn btn-outline">🖨️ প্রিন্ট</a>
+    <a href="{{ url_for('admin.download_orders_csv', date=selected_date) }}" class="btn btn-outline">⬇️ CSV</a>
+  </div>
+</div>
+
+{% if orders %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>টোকেন</th>
+        <th>নাম</th>
+        <th>রোল</th>
+        <th>ডিপার্টমেন্ট</th>
+        <th>আইটেম</th>
+        <th>মোট</th>
+        <th>স্ট্যাটাস</th>
+        <th>পরিবর্তন</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td><strong>{{ order.token_number }}</strong></td>
+        <td>{{ order.student.name }}</td>
+        <td>{{ order.student.roll }}</td>
+        <td>{{ order.student.department }}</td>
+        <td>
+          {% for oi in order.items %}
+          <div>{{ oi.menu_item.name }} × {{ oi.quantity }}</div>
+          {% endfor %}
+        </td>
+        <td>৳ {{ "%.2f"|format(order.total_price) }}</td>
+        <td><span class="badge-status {{ order.status }}">{{ order.status }}</span></td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="date" value="{{ selected_date }}" />
+            <select name="status" class="status-select" onchange="this.form.submit()">
+              <option value="confirmed" {% if order.status=='confirmed' %}selected{% endif %}>নিশ্চিত</option>
+              <option value="ready" {% if order.status=='ready' %}selected{% endif %}>প্রস্তুত</option>
+              <option value="delivered" {% if order.status=='delivered' %}selected{% endif %}>দেওয়া হয়েছে</option>
+              <option value="cancelled" {% if order.status=='cancelled' %}selected{% endif %}>বাতিল</option>
+            </select>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📋</div>
+  <h2>{{ selected_date }} তারিখে কোনো অর্ডার নেই</h2>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'student/base_student.html' %}
+{% block title %}অর্ডার দিন{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <h1>🛒 মেনু</h1>
+</div>
+
+<!-- STATUS BANNER -->
+{% if existing %}
+<div class="order-status-banner banner-success">
+  ✅ আপনি ইতিমধ্যে <strong>{{ tomorrow }}</strong> তারিখের জন্য অর্ডার দিয়েছেন।
+  <a href="{{ url_for('student.my_orders') }}" class="btn btn-sm btn-outline" style="margin-left:10px">অর্ডার দেখুন →</a>
+</div>
+{% elif deadline_passed %}
+<div class="order-status-banner banner-warning">
+  ⏰ আজকের অর্ডার deadline (<strong>{{ settings.order_deadline }}</strong>) পার হয়ে গেছে।
+  আগামীকাল আবার order দিতে পারবেন।
+</div>
+{% elif show_date is none %}
+<div class="order-status-banner banner-closed">
+  🔴 ক্যান্টিন এখন অর্ডার নিচ্ছে না — আগামীকালের মেনু এখনো সেট হয়নি।
+  নিচে সম্পূর্ণ মেনু দেখুন।
+</div>
+{% else %}
+<div class="order-status-banner banner-open">
+  🟢 অর্ডার খোলা আছে! Deadline: <strong>আজ রাত {{ settings.order_deadline }}</strong>
+</div>
+{% endif %}
+
+<!-- MENU ITEMS -->
+{% if menu_items %}
+<form method="POST" action="{{ url_for('student.order') }}" id="orderForm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div class="menu-order-grid">
+    {% for item in menu_items %}
+    <div class="menu-order-card {% if not can_order %}card-disabled{% endif %}" id="card_{{ item.id }}">
+      <div class="menu-order-img">
+        <img src="{{ url_for('static', filename='uploads/food/' + item.image) }}"
+             alt="{{ item.name }}"
+             onerror="this.src='{{ url_for('static', filename='img/food_default.png') }}'" />
+        {% if not can_order %}
+        <div class="card-overlay">
+          {% if deadline_passed %}⏰ Deadline শেষ
+          {% elif existing %}✅ অর্ডার দেওয়া হয়েছে
+          {% else %}🔴 অর্ডার বন্ধ{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="menu-order-body">
+        <h3>{{ item.name }}</h3>
+        {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+        <span class="price">৳ {{ "%.2f"|format(item.price) }}</span>
+      </div>
+      {% if can_order %}
+      <div class="menu-order-select">
+        <label class="checkbox-wrap">
+          <input type="checkbox" name="items" value="{{ item.id }}"
+                 id="chk_{{ item.id }}" onchange="toggleQty({{ item.id }}, {{ item.price }})" />
+          <span class="checkmark"></span>
+          বাছাই করুন
+        </label>
+        <div class="qty-wrap" id="qty_{{ item.id }}" style="display:none">
+          <label>পরিমাণ:</label>
+          <input type="number" name="qty_{{ item.id }}" value="1" min="1" max="10"
+                 class="qty-input" onchange="updateTotal()" />
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ORDER SUMMARY (only if can order) -->
+  {% if can_order %}
+  <div class="order-summary-box" id="summaryBox" style="display:none">
+    <h3>অর্ডার সারসংক্ষেপ</h3>
+    <p class="summary-date">📅 তারিখ: <strong>{{ tomorrow }}</strong></p>
+    <div id="summaryItems"></div>
+    <div class="order-grand-total">মোট: ৳ <span id="grandTotal">0.00</span></div>
+    <button type="submit" class="btn btn-primary btn-block">✓ অর্ডার নিশ্চিত করুন</button>
+  </div>
+  {% endif %}
+</form>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🍱</div>
+  <h2>এখনো কোনো মেনু আইটেম যোগ করা হয়নি</h2>
+</div>
+{% endif %}
+
+<script>
+const prices = { {% for item in menu_items %}{{ item.id }}: {{ item.price }}{% if not loop.last %},{% endif %}{% endfor %} };
+const names  = { {% for item in menu_items %}{{ item.id }}: "{{ item.name }}"{% if not loop.last %},{% endif %}{% endfor %} };
+
+function toggleQty(id) {
+  const chk = document.getElementById('chk_' + id);
+  const qtyWrap = document.getElementById('qty_' + id);
+  const card = document.getElementById('card_' + id);
+  qtyWrap.style.display = chk.checked ? 'flex' : 'none';
+  card.classList.toggle('selected', chk.checked);
+  updateTotal();
+}
+
+function updateTotal() {
+  const checkboxes = document.querySelectorAll('input[name="items"]:checked');
+  const summaryBox = document.getElementById('summaryBox');
+  const summaryItems = document.getElementById('summaryItems');
+  const grandTotal = document.getElementById('grandTotal');
+  if (!summaryBox) return;
+  summaryBox.style.display = checkboxes.length > 0 ? 'block' : 'none';
+  let total = 0, html = '';
+  checkboxes.forEach(chk => {
+    const id = chk.value;
+    const qty = parseInt(document.querySelector(`input[name="qty_${id}"]`).value) || 1;
+    const subtotal = prices[id] * qty;
+    total += subtotal;
+    html += `<div class="summary-row"><span>${names[id]} × ${qty}</span><span>৳ ${subtotal.toFixed(2)}</span></div>`;
+  });
+  summaryItems.innerHTML = html;
+  grandTotal.textContent = total.toFixed(2);
+}
+</script>
+{% endblock %}

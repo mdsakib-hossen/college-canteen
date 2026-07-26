@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <title>অর্ডার লিস্ট — {{ selected_date }}</title>
+  <style>
+    body { font-family: 'Hind Siliguri', Arial, sans-serif; font-size: 13px; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 4px; }
+    .sub { text-align: center; color: #555; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+    th { background: #f0f0f0; }
+    .total-row { font-weight: bold; }
+    @media print { button { display: none; } }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri&display=swap" rel="stylesheet" />
+</head>
+<body>
+<h1>{{ settings.canteen_name }}</h1>
+<div class="sub">{{ settings.college_name }} | অর্ডার তালিকা: {{ selected_date }}</div>
+<button onclick="window.print()" style="margin-bottom:12px;padding:6px 16px;cursor:pointer;">🖨️ Print</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>টোকেন</th>
+      <th>নাম</th>
+      <th>রোল</th>
+      <th>ডিপার্টমেন্ট</th>
+      <th>আইটেম</th>
+      <th>মোট</th>
+      <th>স্ট্যাটাস</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for order in orders %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ order.token_number }}</td>
+      <td>{{ order.student.name }}</td>
+      <td>{{ order.student.roll }}</td>
+      <td>{{ order.student.department }}</td>
+      <td>{% for oi in order.items %}{{ oi.menu_item.name }} ×{{ oi.quantity }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+      <td>৳ {{ "%.2f"|format(order.total_price) }}</td>
+      <td>{{ order.status }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr class="total-row">
+      <td colspan="6" style="text-align:right">মোট অর্ডার: {{ orders|length }}</td>
+      <td colspan="2">মোট টাকা: ৳ {{ "%.2f"|format(orders|sum(attribute='total_price')) }}</td>
+    </tr>
+  </tfoot>
+</table>
+</body>
+</html>

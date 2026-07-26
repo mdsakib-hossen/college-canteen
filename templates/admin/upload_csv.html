@@ -1,0 +1,71 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}শিক্ষার্থী যোগ করুন{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <a href="{{ url_for('admin.students') }}" class="back-link">← শিক্ষার্থীতে ফিরুন</a>
+  <h1>👥 শিক্ষার্থী যোগ করুন</h1>
+</div>
+
+<!-- TAB BUTTONS -->
+<div class="tab-btns">
+  <button class="tab-btn active" onclick="switchTab('manual', this)">✍️ একজন একজন যোগ করুন</button>
+  <button class="tab-btn" onclick="switchTab('csv', this)">📤 CSV দিয়ে একসাথে যোগ করুন</button>
+</div>
+
+<!-- MANUAL ADD TAB -->
+<div id="tab-manual" class="tab-content form-page-card">
+  <h2>✍️ নতুন শিক্ষার্থী যোগ করুন</h2>
+  <form method="POST" action="{{ url_for('admin.add_student_manual') }}" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>রোল নম্বর *</label>
+        <input type="text" name="roll" placeholder="যেমন: CST-2021-001" required style="text-transform:uppercase" />
+      </div>
+      <div class="form-group">
+        <label>নাম *</label>
+        <input type="text" name="name" placeholder="পূর্ণ নাম লিখুন" required />
+      </div>
+    </div>
+    <div class="form-actions">
+      <a href="{{ url_for('admin.students') }}" class="btn btn-outline">বাতিল</a>
+      <button type="submit" class="btn btn-primary">যোগ করুন</button>
+    </div>
+  </form>
+</div>
+
+<!-- CSV TAB -->
+<div id="tab-csv" class="tab-content form-page-card" style="display:none">
+  <h2>📤 CSV দিয়ে একসাথে যোগ করুন</h2>
+  <div class="csv-guide">
+    <h3>CSV ফাইলের ফরম্যাট</h3>
+    <p>CSV ফাইলে অবশ্যই এই দুটি কলাম থাকতে হবে:</p>
+    <div class="code-block">roll,name
+CST-2021-001,Mohammad Rahim
+CST-2021-002,Fatema Begum</div>
+    <p class="text-muted">কলামের নাম বড় বা ছোট হাতে যেকোনোভাবে লিখতে পারেন।</p>
+  </div>
+  <form method="POST" enctype="multipart/form-data" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-group">
+      <label>CSV ফাইল বাছাই করুন *</label>
+      <input type="file" name="csv_file" accept=".csv" required />
+      <small class="form-hint">শুধু .csv ফাইল, সর্বোচ্চ 5MB</small>
+    </div>
+    <div class="form-actions">
+      <a href="{{ url_for('admin.students') }}" class="btn btn-outline">বাতিল</a>
+      <button type="submit" class="btn btn-primary">আপলোড করুন</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = 'block';
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

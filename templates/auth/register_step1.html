@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}রেজিস্ট্রেশন — ধাপ ১{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <a href="{{ url_for('main.index') }}" class="auth-back">← হোমে ফিরুন</a>
+      <div class="auth-logo">📝</div>
+      <h1>রেজিস্ট্রেশন</h1>
+      <p>ধাপ ১ / ২ — রোল নম্বর যাচাই</p>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step active">১</div>
+      <div class="step-line"></div>
+      <div class="step">২</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="step" value="1" />
+
+      <div class="form-group">
+        <label for="roll">রোল নম্বর</label>
+        <input type="text" id="roll" name="roll"
+               placeholder="আপনার রোল নম্বর লিখুন"
+               required autocomplete="off" style="text-transform:uppercase" />
+        <small class="form-hint">ক্যান্টিন অফিস থেকে প্রদত্ত রোল নম্বর</small>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">যাচাই করুন →</button>
+    </form>
+
+    <div class="auth-footer-links">
+      <p>ইতিমধ্যে একাউন্ট আছে? <a href="{{ url_for('auth.login') }}">লগইন করুন</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

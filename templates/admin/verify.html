@@ -1,0 +1,183 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Verify & Serve{% endblock %}
+
+{% block extra_css %}
+<style>
+.verify-page { max-width: 600px; }
+.scan-area { border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 20px; text-align: center; background: var(--gray-50); margin-bottom: 20px; }
+#qr-video { width: 100%; max-width: 400px; border-radius: var(--radius-sm); display: none; }
+.scan-btn { margin-top: 10px; }
+.order-verify-card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border-left: 5px solid var(--success); }
+.order-verify-card.delivered { border-color: var(--gray-300); opacity: .7; }
+.order-verify-card.cancelled  { border-color: var(--danger); }
+.verify-token { font-size: 2.5rem; font-weight: 900; color: var(--primary); }
+.verify-student { font-size: 1.1rem; font-weight: 700; margin: 8px 0 4px; }
+.verify-meta { color: var(--gray-500); font-size: 14px; margin-bottom: 16px; }
+.verify-items { margin-bottom: 16px; }
+.verify-item-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--gray-100); font-size: 14px; }
+.verify-total { font-weight: 700; text-align: right; margin-top: 8px; }
+.error-card { background: #fee2e2; border: 1px solid #fecaca; border-radius: var(--radius); padding: 20px; text-align: center; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>🎫 Verify & Serve</h1>
+  <p>টোকেন বা QR দিয়ে অর্ডার যাচাই করুন</p>
+</div>
+
+<div class="verify-page">
+
+  <!-- TOKEN INPUT -->
+  <div class="form-page-card">
+    <form method="POST" class="auth-form" id="tokenForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="form-group">
+        <label>টোকেন নম্বর লিখুন</label>
+        <div style="display:flex;gap:10px">
+          <input type="text" name="token" id="tokenInput"
+                 value="{{ token.lstrip('#') if token else '' }}"
+                 placeholder="যেমন: 0047" maxlength="10"
+                 style="flex:1;font-size:1.2rem;font-weight:700;letter-spacing:2px"
+                 autofocus autocomplete="off" />
+          <button type="submit" class="btn btn-primary">🔍 খুঁজুন</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- QR SCANNER -->
+    <div class="scan-area">
+      <div id="scan-placeholder">
+        <div style="font-size:40px">📷</div>
+        <p style="color:var(--gray-500);margin:8px 0">QR Code স্ক্যান করুন</p>
+        <button class="btn btn-outline scan-btn" onclick="startScan()">ক্যামেরা চালু করুন</button>
+      </div>
+      <video id="qr-video" playsinline></video>
+      <div id="scan-status" style="margin-top:8px;font-size:13px;color:var(--gray-500)"></div>
+      <button class="btn btn-sm btn-outline" id="stopBtn" style="display:none;margin-top:8px" onclick="stopScan()">ক্যামেরা বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  {% if error %}
+  <div class="error-card">
+    <div style="font-size:32px">❌</div>
+    <p style="font-size:1.1rem;font-weight:700;margin-top:8px">{{ error }}</p>
+  </div>
+
+  <!-- ORDER FOUND -->
+  {% elif order %}
+  <div class="order-verify-card {% if order.status == 'delivered' %}delivered{% elif order.status == 'cancelled' %}cancelled{% endif %}">
+    <div class="verify-token">{{ order.token_number }}</div>
+    <div class="verify-student">{{ order.student.name }}</div>
+    <div class="verify-meta">
+      রোল: {{ order.student.roll }} &nbsp;|&nbsp;
+      {{ order.student.department }} &nbsp;|&nbsp;
+      তারিখ: {{ order.order_date }}
+    </div>
+
+    <div class="verify-items">
+      {% for oi in order.items %}
+      <div class="verify-item-row">
+        <span>{{ oi.menu_item.name }}</span>
+        <span>× {{ oi.quantity }}</span>
+        <span>৳ {{ "%.2f"|format(oi.price * oi.quantity) }}</span>
+      </div>
+      {% endfor %}
+      <div class="verify-total">মোট: ৳ {{ "%.2f"|format(order.total_price) }}</div>
+    </div>
+
+    {% if order.status == 'delivered' %}
+    <div class="alert alert-success" style="position:static;max-width:100%">
+      ✅ এই অর্ডার আগেই দেওয়া হয়েছে।
+    </div>
+
+    {% elif order.status == 'cancelled' %}
+    <div class="alert alert-danger" style="position:static;max-width:100%">
+      ❌ এই অর্ডার বাতিল করা হয়েছে।
+    </div>
+
+    {% else %}
+    <form method="POST" action="{{ url_for('admin.serve_order', order_id=order.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-primary btn-block" style="font-size:1.1rem;padding:14px">
+        ✅ খাবার দিয়ে দিন
+      </button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+// Auto-format token input
+document.getElementById('tokenInput').addEventListener('input', function() {
+  this.value = this.value.replace(/[^0-9]/g, '');
+  if (this.value.length === 4) this.form.submit();
+});
+
+// QR Scanner using jsQR
+let videoStream = null;
+let scanning = false;
+
+async function startScan() {
+  document.getElementById('scan-placeholder').style.display = 'none';
+  const video = document.getElementById('qr-video');
+  video.style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'inline-flex';
+
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = videoStream;
+    video.play();
+    scanning = true;
+    requestAnimationFrame(scanFrame);
+    document.getElementById('scan-status').textContent = 'স্ক্যান করছি...';
+  } catch(e) {
+    document.getElementById('scan-status').textContent = 'ক্যামেরা চালু করা যায়নি।';
+    document.getElementById('scan-placeholder').style.display = 'block';
+    video.style.display = 'none';
+  }
+}
+
+function stopScan() {
+  scanning = false;
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  document.getElementById('qr-video').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'none';
+  document.getElementById('scan-placeholder').style.display = 'block';
+  document.getElementById('scan-status').textContent = '';
+}
+
+function scanFrame() {
+  if (!scanning) return;
+  const video = document.getElementById('qr-video');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+    if (window.jsQR) {
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) {
+        // Parse token from QR data: "CANTEEN|TOKEN:#0047|..."
+        const match = code.data.match(/TOKEN:(#?\d+)/);
+        if (match) {
+          stopScan();
+          const token = match[1].replace('#', '');
+          document.getElementById('tokenInput').value = token;
+          document.getElementById('tokenForm').submit();
+          return;
+        }
+      }
+    }
+  }
+  requestAnimationFrame(scanFrame);
+}
+</script>
+<!-- jsQR library for QR scanning -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+{% endblock %}

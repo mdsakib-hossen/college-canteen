@@ -1,0 +1,88 @@
+{% extends 'student/base_student.html' %}
+{% block title %}প্রোফাইল{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <h1>👤 প্রোফাইল</h1>
+</div>
+
+<div class="profile-grid">
+  <!-- PROFILE INFO -->
+  <div class="profile-card">
+    <div class="profile-photo-wrap">
+      <img src="{{ url_for('static', filename='uploads/profiles/' + student.photo) }}"
+           alt="Profile Photo" class="profile-photo"
+           onerror="this.src='{{ url_for('static', filename='img/default.png') }}'" />
+    </div>
+    <h2>{{ student.name }}</h2>
+    <p class="profile-roll">{{ student.roll }}</p>
+
+    <div class="profile-details">
+      <div class="profile-row"><span>ডিপার্টমেন্ট</span><span>{{ student.department }}</span></div>
+      <div class="profile-row"><span>সেশন</span><span>{{ student.session }}</span></div>
+      <div class="profile-row"><span>মোবাইল</span><span>{{ student.phone }}</span></div>
+      <div class="profile-row"><span>গার্ডিয়ান/গাইড টিচার</span><span>{{ student.guardian_teacher }}</span></div>
+      <div class="profile-row">
+        <span>সতর্কতা</span>
+        <span class="{% if student.warning_count >= 3 %}text-danger{% endif %}">
+          {{ student.warning_count }}বার
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-forms">
+    <!-- UPDATE PHOTO -->
+    <div class="form-card">
+      <h3>📷 ছবি পরিবর্তন</h3>
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="update_photo" />
+        <div class="form-group">
+          <input type="file" name="photo" accept=".jpg,.jpeg,.png" required />
+          <small class="form-hint">JPG বা PNG, সর্বোচ্চ 2MB</small>
+        </div>
+        <button type="submit" class="btn btn-outline">ছবি আপডেট করুন</button>
+      </form>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="form-card">
+      <h3>🔒 পাসওয়ার্ড পরিবর্তন</h3>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="change_password" />
+        <div class="form-group">
+          <label>পুরানো পাসওয়ার্ড</label>
+          <div class="input-eye">
+            <input type="password" name="old_password" placeholder="পুরানো পাসওয়ার্ড" required />
+            <button type="button" class="eye-btn" onclick="togglePw(this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>নতুন পাসওয়ার্ড</label>
+          <div class="input-eye">
+            <input type="password" name="new_password" placeholder="নতুন পাসওয়ার্ড" required />
+            <button type="button" class="eye-btn" onclick="togglePw(this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>নিশ্চিত করুন</label>
+          <div class="input-eye">
+            <input type="password" name="confirm_password" placeholder="আবার লিখুন" required />
+            <button type="button" class="eye-btn" onclick="togglePw(this)">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">পাসওয়ার্ড পরিবর্তন করুন</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePw(btn) {
+  const inp = btn.previousElementSibling;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}সেটিংস{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>⚙️ সেটিংস</h1>
+</div>
+
+<!-- GENERAL SETTINGS -->
+<div class="form-page-card">
+  <h2>সাধারণ সেটিংস</h2>
+  <form method="POST" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="action" value="update_general" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>কলেজের নাম</label>
+        <input type="text" name="college_name" value="{{ current_settings.get('college_name', '') }}" />
+      </div>
+      <div class="form-group">
+        <label>ক্যান্টিনের নাম</label>
+        <input type="text" name="canteen_name" value="{{ current_settings.get('canteen_name', '') }}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ক্যান্টিন খোলার সময়</label>
+        <input type="time" name="canteen_open" value="{{ current_settings.get('canteen_open', '08:00') }}" />
+      </div>
+      <div class="form-group">
+        <label>ক্যান্টিন বন্ধের সময়</label>
+        <input type="time" name="canteen_close" value="{{ current_settings.get('canteen_close', '16:00') }}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>অর্ডার Deadline (রাতে)</label>
+        <input type="time" name="order_deadline" value="{{ current_settings.get('order_deadline', '22:00') }}" />
+        <small class="form-hint">এই সময়ের পরে পরের দিনের অর্ডার দেওয়া যাবে না</small>
+      </div>
+      <div class="form-group">
+        <label>Cancel Deadline (সকালে)</label>
+        <input type="time" name="cancel_deadline" value="{{ current_settings.get('cancel_deadline', '08:00') }}" />
+        <small class="form-hint">এই সময়ের পরে অর্ডার বাতিল করা যাবে না</small>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">সেটিংস সেভ করুন</button>
+    </div>
+  </form>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div class="form-page-card">
+  <h2>🔒 পাসওয়ার্ড পরিবর্তন</h2>
+  <form method="POST" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="action" value="change_password" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>পুরানো পাসওয়ার্ড</label>
+        <input type="password" name="old_password" required />
+      </div>
+      <div class="form-group">
+        <label>নতুন পাসওয়ার্ড</label>
+        <input type="password" name="new_password" required />
+      </div>
+      <div class="form-group">
+        <label>নিশ্চিত করুন</label>
+        <input type="password" name="confirm_password" required />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">পাসওয়ার্ড পরিবর্তন করুন</button>
+    </div>
+  </form>
+</div>
+
+<!-- BACKUP -->
+<div class="form-page-card">
+  <h2>💾 ডেটা ব্যাকআপ</h2>
+  <p>সকল শিক্ষার্থী ও অর্ডারের তথ্য JSON ফাইলে ডাউনলোড করুন।</p>
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" name="action" value="backup" />
+    <button type="submit" class="btn btn-outline">⬇️ ব্যাকআপ ডাউনলোড করুন</button>
+  </form>
+</div>
+{% endblock %}

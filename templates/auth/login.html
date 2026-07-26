@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}লগইন{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <a href="{{ url_for('main.index') }}" class="auth-back">← হোমে ফিরুন</a>
+      <div class="auth-logo">🍽️</div>
+      <h1>লগইন করুন</h1>
+      <p>{{ settings.canteen_name }} — {{ settings.college_name }}</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div class="form-group">
+        <label for="roll">রোল নম্বর</label>
+        <input type="text" id="roll" name="roll" placeholder="যেমন: CST-2021-001"
+               required autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">পাসওয়ার্ড</label>
+        <div class="input-eye">
+          <input type="password" id="password" name="password"
+                 placeholder="পাসওয়ার্ড লিখুন" required autocomplete="current-password" />
+          <button type="button" class="eye-btn" onclick="togglePw('password')">👁</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">লগইন করুন</button>
+    </form>
+
+    <div class="auth-footer-links">
+      <p>একাউন্ট নেই? <a href="{{ url_for('auth.register') }}">রেজিস্ট্রেশন করুন</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePw(id) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="app-layout">
+  <aside class="sidebar sidebar-admin" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🍽️</span>
+      <div>
+        <div class="sidebar-title">{{ settings.canteen_name }}</div>
+        <div class="sidebar-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+        🏠 <span>ড্যাশবোর্ড</span>
+      </a>
+      <a href="{{ url_for('admin.orders') }}"
+         class="sidebar-link {% if 'order' in request.endpoint %}active{% endif %}">
+        📋 <span>অর্ডার ম্যানেজমেন্ট</span>
+      </a>
+      <a href="{{ url_for('admin.verify') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.verify' %}active{% endif %}">
+        🎫 <span>Verify & Serve</span>
+      </a>
+      <a href="{{ url_for('admin.menu') }}"
+         class="sidebar-link {% if 'menu' in request.endpoint %}active{% endif %}">
+        🍱 <span>মেনু ম্যানেজমেন্ট</span>
+      </a>
+      <a href="{{ url_for('admin.daily_menu') }}"
+         class="sidebar-link {% if 'daily_menu' in request.endpoint %}active{% endif %}">
+        📅 <span>দৈনিক মেনু</span>
+      </a>
+      <a href="{{ url_for('admin.students') }}"
+         class="sidebar-link {% if 'student' in request.endpoint %}active{% endif %}">
+        👥 <span>শিক্ষার্থী ম্যানেজমেন্ট</span>
+      </a>
+      <a href="{{ url_for('admin.feedback') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.feedback' %}active{% endif %}">
+        ⭐ <span>ফিডব্যাক</span>
+      </a>
+      <a href="{{ url_for('admin.notifications') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.notifications' %}active{% endif %}">
+        🔔 <span>নোটিফিকেশন</span>
+        <span class="badge" id="admin-notif-badge"
+              {% if unread == 0 %}style="display:none"{% endif %}>{{ unread }}</span>
+      </a>
+      <a href="{{ url_for('admin.settings_page') }}"
+         class="sidebar-link {% if request.endpoint == 'admin.settings_page' %}active{% endif %}">
+        ⚙️ <span>সেটিংস</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout">🚪 <span>লগআউট</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-right">
+        <a href="{{ url_for('admin.notifications') }}" class="notif-btn">
+          🔔 <span class="badge" id="topbar-admin-badge"
+                   {% if unread == 0 %}style="display:none"{% endif %}>{{ unread }}</span>
+        </a>
+        <span class="topbar-user">Admin</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      {% block admin_content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+setInterval(() => {
+  fetch('{{ url_for("admin.notification_count") }}')
+    .then(r => r.ok ? r.json() : {count: 0})
+    .then(data => {
+      const count = data.count;
+      ['admin-notif-badge', 'topbar-admin-badge'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = count; el.style.display = count > 0 ? 'inline-flex' : 'none'; }
+      });
+    }).catch(() => {});
+}, 30000);
+</script>
+{% endblock %}

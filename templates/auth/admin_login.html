@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Admin Login{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🔐</div>
+      <h1>Admin Login</h1>
+      <p>Canteen Management Panel</p>
+    </div>
+
+    <form method="POST" class="auth-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               placeholder="Admin username" required autocomplete="username" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-eye">
+          <input type="password" id="password" name="password"
+                 placeholder="Password" required autocomplete="current-password" />
+          <button type="button" class="eye-btn" onclick="togglePw('password')">👁</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function togglePw(id) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

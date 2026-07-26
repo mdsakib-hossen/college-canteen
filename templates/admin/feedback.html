@@ -1,0 +1,91 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}ফিডব্যাক{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>⭐ ফিডব্যাক রিপোর্ট</h1>
+</div>
+
+<!-- AVERAGE STATS -->
+{% if avg.total %}
+<div class="stats-grid" style="margin-bottom:24px">
+  <div class="stat-card stat-yellow">
+    <div class="stat-icon">📦</div>
+    <div>
+      <div class="stat-label">গড় পরিমাণ (Quantity)</div>
+      <div class="stat-value">
+        {{ "%.1f"|format(avg.avg_qty) }} / 5
+        <span class="star-mini">{{ '★' * (avg.avg_qty|round|int) }}{{ '☆' * (5 - avg.avg_qty|round|int) }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">🍽️</div>
+    <div>
+      <div class="stat-label">গড় মান (Quality)</div>
+      <div class="stat-value">
+        {{ "%.1f"|format(avg.avg_qlt) }} / 5
+        <span class="star-mini">{{ '★' * (avg.avg_qlt|round|int) }}{{ '☆' * (5 - avg.avg_qlt|round|int) }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">💬</div>
+    <div>
+      <div class="stat-label">মোট ফিডব্যাক</div>
+      <div class="stat-value">{{ avg.total }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if feedbacks %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>টোকেন</th>
+        <th>শিক্ষার্থী</th>
+        <th>তারিখ</th>
+        <th>পরিমাণ ⭐</th>
+        <th>মান ⭐</th>
+        <th>মন্তব্য</th>
+        <th>সময়</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fb in feedbacks %}
+      <tr>
+        <td><strong>{{ fb.order.token_number }}</strong></td>
+        <td>{{ fb.student.name }}<br><small class="text-muted">{{ fb.student.roll }}</small></td>
+        <td>{{ fb.order.order_date }}</td>
+        <td>
+          <div class="star-display">
+            {% for i in range(1,6) %}
+            <span class="{% if i <= fb.quantity_rating %}star-filled{% else %}star-empty{% endif %}">★</span>
+            {% endfor %}
+            <span class="rating-num">{{ fb.quantity_rating }}/5</span>
+          </div>
+        </td>
+        <td>
+          <div class="star-display">
+            {% for i in range(1,6) %}
+            <span class="{% if i <= fb.quality_rating %}star-filled{% else %}star-empty{% endif %}">★</span>
+            {% endfor %}
+            <span class="rating-num">{{ fb.quality_rating }}/5</span>
+          </div>
+        </td>
+        <td>{{ fb.comment if fb.comment else '—' }}</td>
+        <td><small>{{ fb.created_at|bdtime_short }}</small></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">⭐</div>
+  <h2>এখনো কোনো ফিডব্যাক নেই</h2>
+</div>
+{% endif %}
+{% endblock %}

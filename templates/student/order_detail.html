@@ -1,0 +1,99 @@
+{% extends 'student/base_student.html' %}
+{% block title %}অর্ডার বিস্তারিত{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <a href="{{ url_for('student.my_orders') }}" class="back-link">← সব অর্ডার</a>
+  <h1>অর্ডার বিস্তারিত</h1>
+</div>
+
+<div class="order-detail-card">
+  <!-- TOKEN & QR -->
+  <div class="token-qr-section">
+    <div class="token-display-lg">
+      <div class="token-label">টোকেন নম্বর</div>
+      <div class="token-num-lg">{{ order.token_number }}</div>
+      <div class="token-hint">ক্যান্টিনে এই নম্বর দেখান</div>
+    </div>
+    {% if order.qr_code and order.status != 'cancelled' %}
+    <div class="qr-section">
+      <div class="qr-label">QR কোড</div>
+      <img src="data:image/png;base64,{{ order.qr_code }}" alt="QR Code" class="qr-img" />
+      <div class="qr-hint">স্ক্যান করে যাচাই করুন</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- STATUS -->
+  <div class="detail-status">
+    <span class="badge-status-lg {{ order.status }}">
+      {% if order.status == 'pending' %}⏳ অপেক্ষায়
+      {% elif order.status == 'confirmed' %}✅ নিশ্চিত
+      {% elif order.status == 'ready' %}🍱 প্রস্তুত — ক্যান্টিনে আসুন!
+      {% elif order.status == 'delivered' %}✓ সম্পন্ন
+      {% elif order.status == 'cancelled' %}❌ বাতিল
+      {% endif %}
+    </span>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="detail-items">
+    <h3>অর্ডার আইটেম</h3>
+    {% for oi in order.items %}
+    <div class="detail-item-row">
+      <span class="item-name">{{ oi.menu_item.name }}</span>
+      <span>× {{ oi.quantity }}</span>
+      <span>৳ {{ "%.2f"|format(oi.price) }} × {{ oi.quantity }}</span>
+      <span class="item-subtotal">= ৳ {{ "%.2f"|format(oi.price * oi.quantity) }}</span>
+    </div>
+    {% endfor %}
+    <div class="detail-total">মোট: ৳ {{ "%.2f"|format(order.total_price) }}</div>
+  </div>
+
+  <!-- INFO -->
+  <div class="detail-meta">
+    <div class="meta-row"><span>তারিখ:</span><span>{{ order.order_date }}</span></div>
+    <div class="meta-row"><span>অর্ডার করা হয়েছে:</span><span>{{ order.created_at|bdtime }}</span></div>
+    <div class="meta-row"><span>পেমেন্ট:</span><span>ক্যান্টিনে দিতে হবে (Offline)</span></div>
+  </div>
+
+  <!-- FEEDBACK -->
+  {% if order.status == 'delivered' %}
+  <div class="cancel-section">
+    {% if order.feedback %}
+    <div class="feedback-given">
+      <h3>আপনার ফিডব্যাক</h3>
+      <div class="feedback-ratings">
+        <div>পরিমাণ:
+          {% for i in range(1,6) %}<span class="{% if i <= order.feedback.quantity_rating %}star-filled{% else %}star-empty{% endif %}">★</span>{% endfor %}
+        </div>
+        <div>মান:
+          {% for i in range(1,6) %}<span class="{% if i <= order.feedback.quality_rating %}star-filled{% else %}star-empty{% endif %}">★</span>{% endfor %}
+        </div>
+        {% if order.feedback.comment %}<p class="text-muted">{{ order.feedback.comment }}</p>{% endif %}
+      </div>
+    </div>
+    {% else %}
+    <p>আপনার অভিজ্ঞতা শেয়ার করুন!</p>
+    <a href="{{ url_for('student.give_feedback', order_id=order.id) }}" class="btn btn-primary">⭐ ফিডব্যাক দিন</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- CANCEL -->
+  {% if can_cancel %}
+  <div class="cancel-section">
+    <p class="cancel-note">⚠️ Cancel Deadline: <strong>{{ settings.cancel_deadline }}</strong> এর আগে বাতিল করতে পারবেন।</p>
+    <form method="POST" action="{{ url_for('student.cancel_order', order_id=order.id) }}"
+          onsubmit="return confirm('সত্যিই বাতিল করতে চান?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-danger">অর্ডার বাতিল করুন</button>
+    </form>
+  </div>
+  {% elif order.status not in ['cancelled', 'delivered'] %}
+  <div class="cancel-section">
+    <p class="text-muted">Cancel deadline ({{ settings.cancel_deadline }}) পার হয়ে গেছে।</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

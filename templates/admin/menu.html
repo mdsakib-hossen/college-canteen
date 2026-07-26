@@ -1,0 +1,58 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}মেনু ম্যানেজমেন্ট{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>🍱 মেনু ম্যানেজমেন্ট</h1>
+  <a href="{{ url_for('admin.add_menu_item') }}" class="btn btn-primary">+ নতুন আইটেম</a>
+</div>
+
+{% if items %}
+<div class="menu-admin-grid">
+  {% for item in items %}
+  <div class="menu-admin-card {% if not item.is_available %}unavailable{% endif %}">
+    <div class="menu-admin-img">
+      <img src="{{ url_for('static', filename='uploads/food/' + item.image) }}"
+           alt="{{ item.name }}"
+           onerror="this.src='{{ url_for('static', filename='img/food_default.png') }}'" />
+    </div>
+    <div class="menu-admin-body">
+      <h3>{{ item.name }}</h3>
+      {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+      <span class="price">৳ {{ "%.2f"|format(item.price) }}</span>
+      <span class="avail-badge {% if item.is_available %}available{% else %}na{% endif %}">
+        {% if item.is_available %}✅ পাওয়া যাচ্ছে{% else %}❌ নেই{% endif %}
+      </span>
+    </div>
+    <div class="menu-admin-actions">
+      <a href="{{ url_for('admin.edit_menu_item', item_id=item.id) }}" class="btn btn-outline btn-sm">✏️ সম্পাদনা</a>
+      <button class="btn btn-sm {% if item.is_available %}btn-warning{% else %}btn-success{% endif %}"
+              onclick="toggleAvail({{ item.id }}, this)">
+        {% if item.is_available %}অপ্রাপ্য করুন{% else %}প্রাপ্য করুন{% endif %}
+      </button>
+      <form method="POST" action="{{ url_for('admin.delete_menu_item', item_id=item.id) }}"
+            onsubmit="return confirm('সত্যিই মুছবেন?')" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-danger btn-sm">🗑️ মুছুন</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🍱</div>
+  <h2>কোনো মেনু আইটেম নেই</h2>
+  <a href="{{ url_for('admin.add_menu_item') }}" class="btn btn-primary">প্রথম আইটেম যোগ করুন</a>
+</div>
+{% endif %}
+
+<script>
+function toggleAvail(id, btn) {
+  fetch(`{{ url_for('admin.menu') }}/../menu/toggle/${id}`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
+  }).then(() => location.reload());
+}
+</script>
+{% endblock %}

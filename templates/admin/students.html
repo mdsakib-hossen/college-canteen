@@ -1,0 +1,112 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}শিক্ষার্থী ম্যানেজমেন্ট{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>👥 শিক্ষার্থী ম্যানেজমেন্ট</h1>
+  <a href="{{ url_for('admin.upload_csv') }}" class="btn btn-primary">+ শিক্ষার্থী যোগ করুন</a>
+</div>
+
+<!-- SUMMARY -->
+<div class="stats-grid" style="margin-bottom:20px">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">👥</div>
+    <div><div class="stat-label">মোট রোল</div><div class="stat-value">{{ all_rolls|length }}</div></div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">✅</div>
+    <div><div class="stat-label">নিবন্ধিত</div><div class="stat-value">{{ registered|length }}</div></div>
+  </div>
+  <div class="stat-card stat-orange">
+    <div class="stat-icon">⏳</div>
+    <div><div class="stat-label">নিবন্ধন বাকি</div><div class="stat-value">{{ all_rolls|length - registered|length }}</div></div>
+  </div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="নাম বা রোল দিয়ে খুঁজুন..."
+         oninput="filterTable()" class="search-input" />
+</div>
+
+{% if all_rolls %}
+<div class="table-wrap">
+  <table class="data-table" id="studentTable">
+    <thead>
+      <tr>
+        <th>রোল</th>
+        <th>নাম</th>
+        <th>ডিপার্টমেন্ট</th>
+        <th>সেশন</th>
+        <th>নিবন্ধন</th>
+        <th>সতর্কতা</th>
+        <th>স্ট্যাটাস</th>
+        <th>কার্যক্রম</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for roll_record in all_rolls %}
+      {% set student = registered.get(roll_record.roll) %}
+      <tr>
+        <td><strong>{{ roll_record.roll }}</strong></td>
+        <td>{{ roll_record.name }}</td>
+        <td>{{ student.department if student else '—' }}</td>
+        <td>{{ student.session if student else '—' }}</td>
+        <td>
+          {% if student %}
+            <span class="badge-status confirmed">✅ নিবন্ধিত</span>
+          {% else %}
+            <span class="badge-status pending">⏳ বাকি</span>
+          {% endif %}
+        </td>
+        <td class="{% if student and student.warning_count >= 3 %}text-danger{% endif %}">
+          {{ student.warning_count if student else '—' }}
+        </td>
+        <td>
+          {% if student %}
+            {% if student.is_blocked %}
+              <span class="badge-status cancelled">ব্লক</span>
+            {% else %}
+              <span class="badge-status confirmed">সক্রিয়</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          {% if student %}
+            <form method="POST" action="{{ url_for('admin.toggle_block', student_id=student.id) }}"
+                  onsubmit="return confirm('নিশ্চিত?')" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn-sm {% if student.is_blocked %}btn-success{% else %}btn-danger{% endif %}">
+                {% if student.is_blocked %}আনব্লক{% else %}ব্লক{% endif %}
+              </button>
+            </form>
+          {% endif %}
+          <form method="POST" action="{{ url_for('admin.delete_roll', roll_id=roll_record.id) }}"
+                onsubmit="return confirm('এই রোল মুছে ফেলবেন?')" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-sm btn-outline">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">👥</div>
+  <h2>কোনো শিক্ষার্থী নেই</h2>
+  <a href="{{ url_for('admin.upload_csv') }}" class="btn btn-primary">শিক্ষার্থী যোগ করুন</a>
+</div>
+{% endif %}
+
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#studentTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

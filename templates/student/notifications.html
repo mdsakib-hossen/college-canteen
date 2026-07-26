@@ -1,0 +1,32 @@
+{% extends 'student/base_student.html' %}
+{% block title %}নোটিফিকেশন{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <h1>🔔 নোটিফিকেশন</h1>
+</div>
+
+{% if notifications %}
+<div class="notif-list">
+  {% for n in notifications %}
+  <div class="notif-card notif-{{ n.notif_type }}">
+    <div class="notif-icon">
+      {% if n.notif_type == 'success' %}✅
+      {% elif n.notif_type == 'warning' %}⚠️
+      {% else %}ℹ️{% endif %}
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">{{ n.title }}</div>
+      <div class="notif-msg">{{ n.message }}</div>
+      <div class="notif-time">{{ n.created_at|bdtime_short }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🔔</div>
+  <h2>কোনো নোটিফিকেশন নেই</h2>
+</div>
+{% endif %}
+{% endblock %}

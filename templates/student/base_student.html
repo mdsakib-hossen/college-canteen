@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🍽️</span>
+      <div>
+        <div class="sidebar-title">{{ settings.canteen_name }}</div>
+        <div class="sidebar-sub">{{ settings.college_name }}</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('student.dashboard') }}"
+         class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+        🏠 <span>ড্যাশবোর্ড</span>
+      </a>
+      <a href="{{ url_for('student.order') }}"
+         class="sidebar-link {% if request.endpoint == 'student.order' %}active{% endif %}">
+        🛒 <span>অর্ডার দিন</span>
+      </a>
+      <a href="{{ url_for('student.my_orders') }}"
+         class="sidebar-link {% if request.endpoint in ['student.my_orders','student.order_detail'] %}active{% endif %}">
+        📋 <span>আমার অর্ডার</span>
+      </a>
+      <a href="{{ url_for('student.notifications') }}"
+         class="sidebar-link {% if request.endpoint == 'student.notifications' %}active{% endif %}">
+        🔔 <span>নোটিফিকেশন</span>
+        <span class="badge" id="notif-badge" {% if unread_count == 0 %}style="display:none"{% endif %}>
+          {{ unread_count }}
+        </span>
+      </a>
+      <a href="{{ url_for('student.profile') }}"
+         class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+        👤 <span>প্রোফাইল</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout">
+        🚪 <span>লগআউট</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-right">
+        <a href="{{ url_for('student.notifications') }}" class="notif-btn">
+          🔔
+          <span class="badge" id="topbar-badge" {% if unread_count == 0 %}style="display:none"{% endif %}>
+            {{ unread_count }}
+          </span>
+        </a>
+        <span class="topbar-user">{{ current_user.name }}</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      {% block student_content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('active');
+}
+
+// Poll notification count every 30s
+setInterval(() => {
+  fetch('{{ url_for("student.notification_count") }}')
+    .then(r => r.ok ? r.json() : {count: 0})
+    .then(data => {
+      const count = data.count;
+      ['notif-badge', 'topbar-badge'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = count;
+          el.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+      });
+    }).catch(() => {});
+}, 30000);
+</script>
+{% endblock %}

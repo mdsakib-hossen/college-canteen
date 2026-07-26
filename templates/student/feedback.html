@@ -1,0 +1,103 @@
+{% extends 'student/base_student.html' %}
+{% block title %}ফিডব্যাক দিন{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <a href="{{ url_for('student.order_detail', order_id=order.id) }}" class="back-link">← অর্ডারে ফিরুন</a>
+  <h1>⭐ ফিডব্যাক দিন</h1>
+</div>
+
+<div class="feedback-card">
+  <!-- Order summary -->
+  <div class="feedback-order-info">
+    <span class="token-badge">{{ order.token_number }}</span>
+    <span class="order-date">{{ order.order_date }}</span>
+    <div class="order-list-items" style="margin-top:8px">
+      {% for oi in order.items %}
+      <span class="item-chip">{{ oi.menu_item.name }} ×{{ oi.quantity }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form method="POST" class="feedback-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <!-- QUANTITY RATING -->
+    <div class="rating-group">
+      <label class="rating-label">পরিমাণ কেমন ছিল? <span class="rating-hint">(Quantity)</span></label>
+      <div class="star-row" id="qty-stars">
+        {% for i in range(1,6) %}
+        <button type="button" class="star-btn" data-val="{{ i }}" data-group="quantity_rating"
+                onclick="setRating('quantity_rating', {{ i }})">★</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="quantity_rating" id="quantity_rating" value="" required />
+      <div class="rating-desc" id="qty-desc"></div>
+    </div>
+
+    <!-- QUALITY RATING -->
+    <div class="rating-group">
+      <label class="rating-label">মান কেমন ছিল? <span class="rating-hint">(Quality)</span></label>
+      <div class="star-row" id="qlt-stars">
+        {% for i in range(1,6) %}
+        <button type="button" class="star-btn" data-val="{{ i }}" data-group="quality_rating"
+                onclick="setRating('quality_rating', {{ i }})">★</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="quality_rating" id="quality_rating" value="" required />
+      <div class="rating-desc" id="qlt-desc"></div>
+    </div>
+
+    <!-- COMMENT -->
+    <div class="form-group">
+      <label>মন্তব্য <span style="font-weight:400;color:var(--gray-400)">(ঐচ্ছিক)</span></label>
+      <textarea name="comment" rows="3" placeholder="আপনার অভিজ্ঞতা শেয়ার করুন..." maxlength="500"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>
+      ফিডব্যাক জমা দিন
+    </button>
+  </form>
+</div>
+
+<script>
+const labels = ['', 'খুব খারাপ 😞', 'খারাপ 😕', 'ঠিক আছে 😐', 'ভালো 😊', 'অসাধারণ 🤩'];
+const groups = { quantity_rating: 'qty', quality_rating: 'qlt' };
+
+function setRating(group, val) {
+  document.getElementById(group).value = val;
+  const prefix = groups[group];
+  // Update stars
+  document.querySelectorAll(`#${prefix}-stars .star-btn`).forEach((btn, i) => {
+    btn.classList.toggle('active', i < val);
+  });
+  // Update description
+  document.getElementById(`${prefix}-desc`).textContent = labels[val];
+  // Enable submit if both rated
+  const q = document.getElementById('quantity_rating').value;
+  const ql = document.getElementById('quality_rating').value;
+  document.getElementById('submitBtn').disabled = !(q && ql);
+}
+
+// Hover effect
+document.querySelectorAll('.star-btn').forEach(btn => {
+  btn.addEventListener('mouseenter', function() {
+    const val = parseInt(this.dataset.val);
+    const group = this.dataset.group;
+    const prefix = groups[group];
+    document.querySelectorAll(`#${prefix}-stars .star-btn`).forEach((b, i) => {
+      b.classList.toggle('hover', i < val);
+    });
+  });
+  btn.addEventListener('mouseleave', function() {
+    const group = this.dataset.group;
+    const prefix = groups[group];
+    const current = parseInt(document.getElementById(group).value) || 0;
+    document.querySelectorAll(`#${prefix}-stars .star-btn`).forEach((b, i) => {
+      b.classList.remove('hover');
+      b.classList.toggle('active', i < current);
+    });
+  });
+});
+</script>
+{% endblock %}

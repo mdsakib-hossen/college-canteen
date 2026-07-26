@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}রেজিস্ট্রেশন — ধাপ ২{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <div class="auth-logo">👤</div>
+      <h1>তথ্য পূরণ করুন</h1>
+      <p>ধাপ ২ / ২ — {{ name }}</p>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step done">✓</div>
+      <div class="step-line done"></div>
+      <div class="step active">২</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}"
+          class="auth-form" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="step" value="2" />
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>রোল নম্বর</label>
+          <input type="text" value="{{ roll }}" disabled class="input-disabled" />
+        </div>
+        <div class="form-group">
+          <label>নাম</label>
+          <input type="text" value="{{ name }}" disabled class="input-disabled" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="department">ডিপার্টমেন্ট *</label>
+          <select id="department" name="department" required>
+            <option value="">বাছাই করুন</option>
+            <option value="CST">Computer Science & Technology (CST)</option>
+            <option value="EET">Electrical Engineering Technology (EET)</option>
+            <option value="Civil">Civil Engineering</option>
+            <option value="Mechanical">Mechanical Engineering</option>
+            <option value="Other">অন্যান্য</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="session">সেশন *</label>
+          <input type="text" id="session" name="session" placeholder="যেমন: 2021-2022" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone">মোবাইল নম্বর *</label>
+          <input type="tel" id="phone" name="phone" placeholder="01XXXXXXXXX" required />
+        </div>
+        <div class="form-group">
+          <label for="guardian_teacher">গার্ডিয়ান/গাইড টিচারের নাম *</label>
+          <input type="text" id="guardian_teacher" name="guardian_teacher"
+                 placeholder="নাম লিখুন" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="photo">প্রোফাইল ছবি (ঐচ্ছিক)</label>
+        <input type="file" id="photo" name="photo" accept=".jpg,.jpeg,.png" />
+        <small class="form-hint">JPG বা PNG, সর্বোচ্চ 2MB</small>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">পাসওয়ার্ড *</label>
+          <div class="input-eye">
+            <input type="password" id="password" name="password"
+                   placeholder="কমপক্ষে ৮ অক্ষর" required />
+            <button type="button" class="eye-btn" onclick="togglePw('password')">👁</button>
+          </div>
+          <small class="form-hint">বড় হাত, ছোট হাত, সংখ্যা থাকতে হবে</small>
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">পাসওয়ার্ড নিশ্চিত *</label>
+          <div class="input-eye">
+            <input type="password" id="confirm_password" name="confirm_password"
+                   placeholder="আবার লিখুন" required />
+            <button type="button" class="eye-btn" onclick="togglePw('confirm_password')">👁</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">রেজিস্ট্রেশন সম্পন্ন করুন ✓</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function togglePw(id) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'student/base_student.html' %}
+{% block title %}ড্যাশবোর্ড{% endblock %}
+
+{% block student_content %}
+<div class="page-header">
+  <h1>স্বাগতম, {{ current_user.name }}! 👋</h1>
+  <p>রোল: {{ current_user.roll }} | {{ current_user.department }} | {{ current_user.session }}</p>
+</div>
+
+{% if current_user.warning_count >= 3 %}
+<div class="alert alert-warning">
+  ⚠️ আপনি {{ current_user.warning_count }}বার অর্ডার দিয়ে নেননি। বারবার এমন হলে একাউন্ট সাময়িক বন্ধ হতে পারে।
+</div>
+{% endif %}
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">📅</div>
+    <div>
+      <div class="stat-label">আজকের অর্ডার</div>
+      <div class="stat-value">
+        {% if today_order %}
+          <span class="badge-status {{ today_order.status }}">{{ today_order.status|upper }}</span>
+        {% else %}
+          নেই
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-green">
+    <div class="stat-icon">🕐</div>
+    <div>
+      <div class="stat-label">অর্ডার Deadline</div>
+      <div class="stat-value">{{ settings.order_deadline }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-orange">
+    <div class="stat-icon">❌</div>
+    <div>
+      <div class="stat-label">Cancel Deadline</div>
+      <div class="stat-value">{{ settings.cancel_deadline }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- TODAY'S ORDER CARD -->
+{% if today_order %}
+<div class="info-card">
+  <h2>আজকের অর্ডার</h2>
+  <div class="order-summary">
+    <div class="token-display">
+      <span class="token-label">টোকেন</span>
+      <span class="token-num">{{ today_order.token_number }}</span>
+    </div>
+    <div class="order-items-list">
+      {% for oi in today_order.items %}
+      <div class="order-item-row">
+        <span>{{ oi.menu_item.name }}</span>
+        <span>× {{ oi.quantity }}</span>
+        <span>৳ {{ "%.2f"|format(oi.price * oi.quantity) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="order-total">মোট: ৳ {{ "%.2f"|format(today_order.total_price) }}</div>
+    <a href="{{ url_for('student.order_detail', order_id=today_order.id) }}" class="btn btn-outline btn-sm">
+      বিস্তারিত দেখুন →
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- ORDER TOMORROW CTA -->
+<div class="cta-card">
+  <div class="cta-text">
+    <h2>আগামীকালের জন্য অর্ডার দিন</h2>
+    {% if deadline_passed %}
+    <p class="text-danger">আজকের অর্ডার deadline ({{ settings.order_deadline }}) পার হয়ে গেছে।</p>
+    {% elif tomorrow_order %}
+    <p class="text-success">✅ আগামীকালের অর্ডার দেওয়া হয়েছে।</p>
+    {% elif tomorrow_menu == 0 %}
+    <p class="text-muted">আগামীকালের মেনু এখনো সেট হয়নি।</p>
+    {% else %}
+    <p>Deadline: <strong>আজ রাত {{ settings.order_deadline }}</strong> এর মধ্যে দিন।</p>
+    {% endif %}
+  </div>
+  {% if not deadline_passed and not tomorrow_order and tomorrow_menu > 0 %}
+  <a href="{{ url_for('student.order') }}" class="btn btn-primary">অর্ডার দিন →</a>
+  {% endif %}
+</div>
+{% endblock %}

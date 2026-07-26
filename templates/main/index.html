@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}হোম{% endblock %}
+
+{% block body %}
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <span class="nav-icon">🍽️</span>
+      <div>
+        <span class="nav-canteen">{{ settings.canteen_name }}</span>
+        <span class="nav-college">{{ settings.college_name }}</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline">লগইন</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary">রেজিস্ট্রেশন</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">স্বাগতম! 👋</h1>
+    <p class="hero-subtitle">{{ settings.college_name }} এর অনলাইন ক্যান্টিন অর্ডার সিস্টেম</p>
+    <p class="hero-desc">আগের দিন অর্ডার দিন, লাইনে দাঁড়ানোর ঝামেলা নেই।</p>
+    <div class="hero-timing">
+      <span>⏰ খোলা থাকে: <strong>{{ settings.canteen_open }} — {{ settings.canteen_close }}</strong></span>
+    </div>
+    <div class="hero-btns">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">এখনই রেজিস্ট্রেশন করুন</a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-lg">লগইন করুন</a>
+    </div>
+  </div>
+  <div class="hero-illustration">🍱</div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
+  <div class="container">
+    <h2 class="section-title">কীভাবে কাজ করে?</h2>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">১</div>
+        <div class="step-icon">📝</div>
+        <h3>রেজিস্ট্রেশন</h3>
+        <p>রোল নম্বর দিয়ে যাচাই করুন, তারপর একাউন্ট তৈরি করুন।</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">২</div>
+        <div class="step-icon">🛒</div>
+        <h3>অর্ডার দিন</h3>
+        <p>আগের দিন রাতে মেনু দেখে পছন্দের খাবার অর্ডার করুন।</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">৩</div>
+        <div class="step-icon">🎫</div>
+        <h3>টোকেন পান</h3>
+        <p>অর্ডার নিশ্চিত হলে Token ও QR Code পাবেন।</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">৪</div>
+        <div class="step-icon">🍽️</div>
+        <h3>খাবার নিন</h3>
+        <p>ক্যান্টিনে গিয়ে Token দেখালেই খাবার পাবেন।</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TODAY'S MENU -->
+{% if today_items %}
+<section class="todays-menu">
+  <div class="container">
+    <h2 class="section-title">আজকের মেনু</h2>
+    <div class="menu-grid">
+      {% for item in today_items %}
+      <div class="menu-card">
+        <div class="menu-card-img">
+          <img src="{{ url_for('static', filename='uploads/food/' + item.image) }}"
+               alt="{{ item.name }}"
+               onerror="this.src='{{ url_for('static', filename='img/food_default.png') }}'" />
+        </div>
+        <div class="menu-card-body">
+          <h3>{{ item.name }}</h3>
+          {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+          <span class="price">৳ {{ "%.2f"|format(item.price) }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="menu-cta">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary">লগইন করে অর্ডার দিন</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <p>© {{ 2025 }} {{ settings.college_name }} — {{ settings.canteen_name }}</p>
+    <p>Developed by <strong>{{ settings.developer }}</strong></p>
+  </div>
+</footer>
+
+{% endblock %}

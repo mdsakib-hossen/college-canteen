@@ -1,0 +1,76 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+  <h1>🏠 ড্যাশবোর্ড</h1>
+  <p>আজকের তারিখ: <strong>{{ today }}</strong></p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">📋</div>
+    <div><div class="stat-label">আজকের মোট অর্ডার</div><div class="stat-value">{{ total_orders_today }}</div></div>
+  </div>
+  <div class="stat-card stat-yellow">
+    <div class="stat-icon">⏳</div>
+    <div><div class="stat-label">অপেক্ষায়</div><div class="stat-value">{{ pending }}</div></div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">✅</div>
+    <div><div class="stat-label">প্রস্তুত</div><div class="stat-value">{{ ready }}</div></div>
+  </div>
+  <div class="stat-card stat-teal">
+    <div class="stat-icon">✓</div>
+    <div><div class="stat-label">দেওয়া হয়েছে</div><div class="stat-value">{{ delivered }}</div></div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">👥</div>
+    <div><div class="stat-label">মোট শিক্ষার্থী</div><div class="stat-value">{{ total_students }}</div></div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+  <a href="{{ url_for('admin.orders') }}" class="quick-btn">📋 অর্ডার দেখুন</a>
+  <a href="{{ url_for('admin.daily_menu') }}" class="quick-btn">📅 মেনু সেট করুন</a>
+  <a href="{{ url_for('admin.upload_csv') }}" class="quick-btn">📤 CSV আপলোড</a>
+  <a href="{{ url_for('admin.print_orders') }}" class="quick-btn" target="_blank">🖨️ প্রিন্ট করুন</a>
+</div>
+
+<!-- RECENT ORDERS -->
+{% if recent_orders %}
+<div class="info-card">
+  <h2>সাম্প্রতিক অর্ডার</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>টোকেন</th><th>নাম</th><th>রোল</th><th>আইটেম</th><th>মোট</th><th>স্ট্যাটাস</th><th>কার্যক্রম</th></tr>
+      </thead>
+      <tbody>
+        {% for order in recent_orders %}
+        <tr>
+          <td><strong>{{ order.token_number }}</strong></td>
+          <td>{{ order.student.name }}</td>
+          <td>{{ order.student.roll }}</td>
+          <td>{{ order.items.count() }}টি আইটেম</td>
+          <td>৳ {{ "%.2f"|format(order.total_price) }}</td>
+          <td><span class="badge-status {{ order.status }}">{{ order.status }}</span></td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <select name="status" onchange="this.form.submit()" class="status-select">
+                <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>নিশ্চিত</option>
+                <option value="ready" {% if order.status == 'ready' %}selected{% endif %}>প্রস্তুত</option>
+                <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>দেওয়া হয়েছে</option>
+              </select>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
