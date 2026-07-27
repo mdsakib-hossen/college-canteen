@@ -6,6 +6,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _run_migrations():
+    """Add new columns to existing tables if they don't exist."""
+    from sqlalchemy import text
+    migrations = [
+        "ALTER TABLE students ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE",
+    ]
+    with db.engine.connect() as conn:
+        for sql in migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                conn.rollback()
+
+
 def create_app():
     app = Flask(__name__)
 
@@ -77,6 +92,8 @@ def create_app():
     # Create tables and seed initial data (inside app context)
     with app.app_context():
         db.create_all()
+        # Run safe migrations for new columns
+        _run_migrations()
         from utils.seed import seed_admin
         seed_admin()
 

@@ -43,8 +43,11 @@ def login():
                 return redirect(url_for('auth.login'))
             login_user(student, remember=False)
             # Force password change if temp password was set
-            if student.must_change_password:
-                return redirect(url_for('auth.change_password_forced'))
+            try:
+                if student.must_change_password:
+                    return redirect(url_for('auth.change_password_forced'))
+            except Exception:
+                pass
             next_page = request.args.get('next')
             return redirect(next_page or url_for('student.dashboard'))
         else:
