@@ -379,9 +379,22 @@ def delete_roll(roll_id):
     return redirect(url_for('admin.students'))
 
 
-@admin_bp.route('/students/toggle-block/<int:student_id>', methods=['POST'])
-@login_required
+@admin_bp.route('/students/reset-password/<int:student_id>', methods=['POST'])
 @admin_required
+def reset_student_password(student_id):
+    import random, string
+    student = Student.query.get_or_404(student_id)
+    # Generate temp password: e.g. Temp#4829
+    digits = ''.join(random.choices(string.digits, k=4))
+    temp_password = f"Temp#{digits}"
+    student.set_password(temp_password)
+    student.must_change_password = True
+    db.session.commit()
+    flash(f'✅ {student.name} এর temporary password: {temp_password} — এটা তাকে দিন।', 'success')
+    return redirect(url_for('admin.students'))
+
+
+@admin_bp.route('/students/toggle-block/<int:student_id>', methods=['POST'])
 def toggle_block(student_id):
     student = Student.query.get_or_404(student_id)
     student.is_blocked = not student.is_blocked

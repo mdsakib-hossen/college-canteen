@@ -42,6 +42,9 @@ def login():
                 flash('আপনার একাউন্ট ব্লক করা হয়েছে। ক্যান্টিন অফিসে যোগাযোগ করুন।', 'danger')
                 return redirect(url_for('auth.login'))
             login_user(student, remember=False)
+            # Force password change if temp password was set
+            if student.must_change_password:
+                return redirect(url_for('auth.change_password_forced'))
             next_page = request.args.get('next')
             return redirect(next_page or url_for('student.dashboard'))
         else:
@@ -176,6 +179,45 @@ def logout():
     logout_user()
     flash('সফলভাবে লগআউট হয়েছেন।', 'info')
     return redirect(url_for('main.index'))
+
+
+@auth_bp.route('/forgot-password')
+def forgot_password():
+    settings = {'college_name': get_setting('college_name'), 'canteen_name': get_setting('canteen_name')}
+    return render_template('auth/forgot_password.html', settings=settings)
+
+
+@auth_bp.route('/change-password-forced', methods=['GET', 'POST'])
+@login_required
+def change_password_forced():
+    student = current_user._get_current_object()
+    if not isinstance(student, Student):
+        return redirect(url_for('main.index'))
+
+    if not student.must_change_password:
+        return redirect(url_for('student.dashboard'))
+
+    if request.method == 'POST':
+        new_pw = request.form.get('new_password', '')
+        confirm_pw = request.form.get('confirm_password', '')
+
+        if new_pw != confirm_pw:
+            flash('পাসওয়ার্ড মিলছে না।', 'danger')
+        else:
+            valid, msg = validate_password(new_pw)
+            if not valid:
+                flash(msg, 'danger')
+            else:
+                student.set_password(new_pw)
+                student.must_change_password = False
+                db.session.commit()
+                flash('পাসওয়ার্ড পরিবর্তন হয়েছে! এখন লগইন করুন।', 'success')
+                from flask_login import logout_user
+                logout_user()
+                return redirect(url_for('auth.login'))
+
+    settings = {'college_name': get_setting('college_name'), 'canteen_name': get_setting('canteen_name')}
+    return render_template('auth/change_password_forced.html', settings=settings)
 
 
 # Admin login (hidden URL)

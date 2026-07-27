@@ -37,6 +37,7 @@ class Student(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     is_blocked = db.Column(db.Boolean, default=False)
     warning_count = db.Column(db.Integer, default=0)
+    must_change_password = db.Column(db.Boolean, default=False)  # force password change after reset
     created_at = db.Column(db.DateTime, default=bd_now)
 
     orders = db.relationship('Order', backref='student', lazy='dynamic')

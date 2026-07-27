@@ -622,3 +622,10 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
   /* Token huge on tiny screen */
   .token-num-lg { font-size: 2.8rem; }
 }
+
+/* ═══════════════════════════════════════
+   FORGOT PASSWORD
+═══════════════════════════════════════ */
+.forgot-info { background: var(--gray-50); border-radius: var(--radius); padding: 20px; text-align: center; border: 1px solid var(--gray-200); }
+.forgot-icon { font-size: 40px; margin-bottom: 12px; }
+.forgot-info p { font-size: 15px; color: var(--gray-700); }

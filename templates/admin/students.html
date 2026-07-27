@@ -74,6 +74,11 @@
         </td>
         <td style="display:flex;gap:6px;flex-wrap:wrap">
           {% if student %}
+            <form method="POST" action="{{ url_for('admin.reset_student_password', student_id=student.id) }}"
+                  onsubmit="return confirm('{{ student.name }} এর পাসওয়ার্ড রিসেট করবেন?')" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn-sm btn-warning">🔑 Reset</button>
+            </form>
             <form method="POST" action="{{ url_for('admin.toggle_block', student_id=student.id) }}"
                   onsubmit="return confirm('নিশ্চিত?')" style="display:inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
