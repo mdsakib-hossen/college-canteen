@@ -8,17 +8,22 @@ load_dotenv()
 
 def _run_migrations():
     """Add new columns to existing tables if they don't exist."""
-    from sqlalchemy import text
-    migrations = [
-        "ALTER TABLE students ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE",
-    ]
+    from sqlalchemy import text, inspect
     with db.engine.connect() as conn:
-        for sql in migrations:
-            try:
-                conn.execute(text(sql))
+        try:
+            # Check if column exists before adding
+            inspector = inspect(db.engine)
+            columns = [c['name'] for c in inspector.get_columns('students')]
+            if 'must_change_password' not in columns:
+                conn.execute(text(
+                    "ALTER TABLE students ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE"
+                ))
                 conn.commit()
-            except Exception:
+        except Exception:
+            try:
                 conn.rollback()
+            except Exception:
+                pass
 
 
 def create_app():
@@ -26,14 +31,15 @@ def create_app():
 
     # Security config
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production-xK9mP2qL')
-    # Fix postgres URL for SQLAlchemy
+    # Fix database URL for different drivers
     db_url = os.environ.get('DATABASE_URL', 'sqlite:///canteen.db')
     if db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql+pg8000://', 1)
-    elif db_url.startswith('postgresql://'):
+    elif db_url.startswith('postgresql://') and 'pg8000' not in db_url and 'psycopg2' not in db_url:
         db_url = db_url.replace('postgresql://', 'postgresql+pg8000://', 1)
     elif db_url.startswith('postgresql+psycopg2://'):
         db_url = db_url.replace('postgresql+psycopg2://', 'postgresql+pg8000://', 1)
+    # MySQL is already in correct format (mysql+pymysql://)
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['WTF_CSRF_ENABLED'] = True
