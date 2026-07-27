@@ -629,3 +629,9 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 .forgot-info { background: var(--gray-50); border-radius: var(--radius); padding: 20px; text-align: center; border: 1px solid var(--gray-200); }
 .forgot-icon { font-size: 40px; margin-bottom: 12px; }
 .forgot-info p { font-size: 15px; color: var(--gray-700); }
+
+/* Footer developer info */
+.footer-dev { display: flex; align-items: center; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; font-size: 14px; }
+.footer-dev-link { color: #a0aec0; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: color .2s; }
+.footer-dev-link:hover { color: #fff; }
+.footer-sep { color: #4a5568; }
