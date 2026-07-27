@@ -379,6 +379,22 @@ def delete_roll(roll_id):
     return redirect(url_for('admin.students'))
 
 
+@admin_bp.route('/students/cancel-registration/<int:student_id>', methods=['POST'])
+@admin_required
+def cancel_registration(student_id):
+    student = Student.query.get_or_404(student_id)
+    roll_record = StudentRoll.query.filter_by(roll=student.roll).first()
+
+    # Reset roll to unregistered
+    if roll_record:
+        roll_record.is_registered = False
+
+    db.session.delete(student)
+    db.session.commit()
+    flash(f'✅ registration বাতিল হয়েছে। এখন সে আবার register করতে পারবে।', 'success')
+    return redirect(url_for('admin.students'))
+
+
 @admin_bp.route('/students/reset-password/<int:student_id>', methods=['POST'])
 @admin_required
 def reset_student_password(student_id):
